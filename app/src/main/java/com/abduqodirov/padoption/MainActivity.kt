@@ -23,10 +23,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.navigate
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.*
 import com.abduqodirov.padoption.model.Dog
 import com.abduqodirov.padoption.ui.theme.PAdoptionTheme
 import com.abduqodirov.padoption.ui.theme.Shapes
@@ -34,6 +31,13 @@ import com.abduqodirov.padoption.ui.theme.Shapes
 class MainActivity : AppCompatActivity() {
 
     val TAG = "MainActivityC"
+
+    val dogs = listOf<Dog>(
+        Dog(1, "Heyy", 3, "Lablador"),
+        Dog(2, "Heyy", 3, "Lablador"),
+        Dog(3, "Heyy", 3, "Lablador"),
+        Dog(4, "Heyy", 3, "Lablador"),
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,40 +51,41 @@ class MainActivity : AppCompatActivity() {
 
             NavHost(navController = navController, startDestination = "overview") {
                 composable("overview") { OverviewScreen(navController) }
-                composable("details") { DetailsScreen() }
+                composable("details/{dogId}") { backStackEntry ->
+                    DetailsScreen(navController, backStackEntry.arguments?.getString("dogId")) }
             }
 
-//            PAdoptionTheme {
-//
-//                OverviewScreen(navController)
-//
-//            }
         }
 
     }
 
     @Composable
     fun OverviewScreen(navController: NavController) {
-        val dogs = listOf<Dog>(
-            Dog(1, "Heyy", 3, "Lablador"),
-            Dog(2, "Heyy", 3, "Lablador"),
-            Dog(3, "Heyy", 3, "Lablador"),
-            Dog(4, "Heyy", 3, "Lablador"),
-        )
+
 
         DogsList(
             dogs = dogs,
             onClick = {
                 Log.d(TAG, "OverviewScreen: ${it}-element bosildi")
-                navController.navigate("details")
+                navController.navigate("details/$it")
             }
         )
 
     }
 
     @Composable
-    fun DetailsScreen() {
-        Text(text = "this is details screen")
+    fun DetailsScreen(navController: NavController, dogId: String?) {
+
+        if (dogId != null) {
+
+            val id = dogId.toInt()
+
+            val dog = dogs.find { dog -> dog.id == id }
+
+            Text(text = "${dog}")
+
+        }
+
     }
 
     @Composable
