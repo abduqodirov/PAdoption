@@ -11,48 +11,55 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Divider
+import androidx.compose.material.Card
+import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.navigation.compose.*
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.navigate
+import androidx.navigation.compose.rememberNavController
 import com.abduqodirov.padoption.model.Dog
 import com.abduqodirov.padoption.ui.theme.PAdoptionTheme
-import com.abduqodirov.padoption.ui.theme.Shapes
+import org.intellij.lang.annotations.JdkConstants
 
 class MainActivity : AppCompatActivity() {
 
     val TAG = "MainActivityC"
 
     val dogs = listOf<Dog>(
-        Dog(1, "Heyy", 3, "Lablador"),
-        Dog(2, "Heyy", 3, "Lablador"),
-        Dog(3, "Heyy", 3, "Lablador"),
-        Dog(4, "Heyy", 3, "Lablador"),
+        Dog(1, "Kattakon", 3, true, R.drawable.kattakon),
+        Dog(2, "Blacky", 3, false, R.drawable.blacky),
+        Dog(3, "Kiaren", 3, true, R.drawable.kiaren),
+        Dog(4, "Yum", 3, false, R.drawable.yum),
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-
-
-
         setContent {
 
             val navController = rememberNavController()
 
-            NavHost(navController = navController, startDestination = "overview") {
-                composable("overview") { OverviewScreen(navController) }
-                composable("details/{dogId}") { backStackEntry ->
-                    DetailsScreen(navController, backStackEntry.arguments?.getString("dogId")) }
+            PAdoptionTheme {
+
+                NavHost(navController = navController, startDestination = "overview") {
+                    composable("overview") { OverviewScreen(navController) }
+                    composable("details/{dogId}") { backStackEntry ->
+                        DetailsScreen(navController, backStackEntry.arguments?.getString("dogId"))
+                    }
+                }
             }
 
         }
@@ -61,7 +68,6 @@ class MainActivity : AppCompatActivity() {
 
     @Composable
     fun OverviewScreen(navController: NavController) {
-
 
         DogsList(
             dogs = dogs,
@@ -82,8 +88,56 @@ class MainActivity : AppCompatActivity() {
 
             val dog = dogs.find { dog -> dog.id == id }
 
-            Text(text = "${dog}")
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxHeight()
+            ) {
 
+                Image(
+                    painter = painterResource(id = dog!!.imageId),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentScale = ContentScale.Crop
+                )
+                Column(modifier = Modifier
+                    .weight(1f)
+                    .padding(16.dp)) {
+                    DogInfo(info = "Nickname" to dog.name)
+
+                    val dogGender = if (dog.isFemale) {
+                        "Female"
+                    } else {
+                        "Male"
+                    }
+
+                    DogInfo(info = "Gender" to dogGender)
+
+                    DogInfo(info = "Age" to dog.age.toString())
+                }
+
+            }
+
+        }
+
+    }
+
+    @Composable
+    fun DogInfo(info: Pair<String, String>) {
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start
+        ) {
+            Text(
+                text = "${info.first}: ",
+                style = MaterialTheme.typography.h6.copy(fontWeight = FontWeight.Normal)
+            )
+            Text(
+                text = info.second,
+                style = MaterialTheme.typography.h6.copy(fontWeight = FontWeight.Bold)
+            )
         }
 
     }
@@ -105,31 +159,63 @@ class MainActivity : AppCompatActivity() {
                 }
             ) { dog ->
 
-
-                Surface(
-                    color = Color.LightGray,
+                Card(
+                    elevation = 4.dp,
                     modifier = Modifier
-                        .clip(RoundedCornerShape(16.dp))
-                        .fillMaxWidth()
-                        .clickable(onClick = { onClick(dog.id) })
+                        .padding(16.dp)
+                        .height(256.dp)
+                        .clickable { onClick(dog.id) }
                 ) {
-                    Row(Modifier.height(64.dp)) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+
                         Image(
-                            painter = painterResource(id = R.drawable.kattakon),
-                            contentDescription = null
+                            painter = painterResource(id = dog.imageId),
+                            contentDescription = null,
+                            contentScale = ContentScale.FillWidth,
+                            modifier = Modifier.weight(1f)
                         )
-                        Text(
-                            text = dog.name,
-                            modifier = Modifier.padding(8.dp)
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp)
+                        ) {
 
+                            Text(
+                                text = dog.name,
+                                modifier = Modifier.padding(8.dp),
+                                style = MaterialTheme.typography.h4
+                            )
+
+                            val genderImageId = if (dog.isFemale) {
+                                R.drawable.femenine
+                            } else {
+                                R.drawable.malegender
+                            }
+
+                            Row {
+
+                                Icon(
+                                    painter = painterResource(id = genderImageId),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp)
+                                )
+
+                            }
+
+                        }
                     }
-                }
 
+                }
             }
 
         }
-
     }
 
+
 }
+
+
